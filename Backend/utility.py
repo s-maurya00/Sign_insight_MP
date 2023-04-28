@@ -3,6 +3,11 @@ import cv2
 import numpy as np
 import mediapipe as mp
 
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from keras.callbacks import TensorBoard
+
+
 mp_holistic = mp.solutions.holistic # Holistic model
 mp_drawing = mp.solutions.drawing_utils # Drawing utilities
 
@@ -20,6 +25,11 @@ no_of_videos = 30
 # Videos are going to be 30 frames in length
 # sequence_length = 30
 no_of_frames_in_a_video = 30
+
+
+# directory for storing logs while training the data
+log_dir = os.path.join('Logs')
+tb_callback = TensorBoard(log_dir=log_dir)
 
 
 def create_dir():
@@ -101,6 +111,7 @@ def draw_styled_landmarks(image, results):
                              mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2)
                              )
 
+
 def extract_keypoints(results):
     """
     This function takes the `results` object returned by the `mediapipe_detection` function and extracts the keypoint coordinates of the detected face, pose, and hand landmarks. The keypoint coordinates are flattened and concatenated into a numpy array.
@@ -120,3 +131,71 @@ def extract_keypoints(results):
     lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
     rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
     return np.concatenate([pose, face, lh, rh])
+
+
+def create_model():
+    """
+    Creates a deep learning model for hand action recognition using LSTM and dense layers.
+
+    Returns:
+    -------
+    model : keras Sequential object
+        The deep learning model for hand action recognition.
+    """
+
+    # defining the model
+    model = Sequential()
+    model.add(LSTM(64, return_sequences = True, activation = 'relu', input_shape = (30, 1662)))
+    model.add(LSTM(128, return_sequences = True, activation = 'relu'))
+    model.add(LSTM(64, return_sequences = False, activation = 'relu'))
+    model.add(Dense(64, activation = 'relu'))
+    model.add(Dense(32, activation = 'relu'))
+    model.add(Dense(actions.shape[0], activation = 'softmax'))
+
+    return model
+
+
+def compile_model(model):
+    """
+    Compiles the deep learning model for hand action recognition.
+
+    Parameters:
+    ----------
+    model : keras Sequential object
+        The deep learning model to be compiled.
+
+    Returns:
+    -------
+    None
+    """
+
+    # compile the defined model
+    model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+
+
+def train_model(model, X_train, y_train):
+    """
+    Trains the deep learning model for hand action recognition using the training data and labels.
+
+    Parameters:
+    ----------
+    model : keras Sequential object
+        The deep learning model to be trained.
+    X_train : numpy.ndarray
+        The training data.
+    y_train : numpy.ndarray
+        The training labels.
+    tb_callback : keras.callbacks.TensorBoard object
+        The TensorBoard callback object for logging training data.
+
+    Returns:
+    -------
+    None
+    """
+    
+
+    # fit the defined model the the training data and labels
+    model.fit(X_train, y_train, epochs = 2000, callbacks = [tb_callback])
+
+    # get summary of the trained model
+    # model.summary()
