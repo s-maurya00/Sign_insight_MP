@@ -1,9 +1,9 @@
 # My functions/constants/variables
 from utility import *
-from data_preprocessing import X_train, y_train
-from model_tester import *
+from model_tester import test_model
 
-def begin_training():
+
+def begin_training(X_train, y_train, X_test, y_test):
     """
     Trains a machine learning model for action recognition using LSTM neural network.
 
@@ -50,13 +50,21 @@ def begin_training():
     
     # Save the model's architecture to directory in json format
     model_json = model.to_json()
-    with open("action_recog.json", "w") as json_file:
+    with open("./Model/action_recog.json", "w") as json_file:
         json_file.write(model_json)
 
     # Save the model to directory in .h5 format
-    model.save('action_recog.h5')
+    model.save('./Model/action_recog.h5')
 
-    test_model(model)
+    test_model(model, X_test, y_test)
 
 if __name__ == '__main__':
-    begin_training()
+
+    # Import only if file is run independently
+    from data_preprocessing import begin_data_preprocessing
+
+    print("Data Preprocessing Started")
+    X_train, y_train, X_test, y_test = begin_data_preprocessing()
+    print("Data Preprocessing Completed")
+
+    begin_training(X_train, y_train, X_test, y_test)
