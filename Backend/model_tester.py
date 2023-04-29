@@ -1,10 +1,8 @@
 import numpy as np
 from sklearn.metrics import multilabel_confusion_matrix, accuracy_score
 
-# My functions/constants/variables
-from data_preprocessing import X_test, y_test
 
-def test_model(model):
+def test_model(model, X_test, y_test):
     """
     The test_model function tests the accuracy of a given model on a test dataset.
 
@@ -20,6 +18,6 @@ def test_model(model):
     ytrue = np.argmax(y_test, axis=1).tolist()
     yhat = np.argmax(yhat, axis=1).tolist()
 
-    print(multilabel_confusion_matrix(ytrue, yhat))
+    print("\nmultilabel_confusion_matrix of the trained model is: \n", multilabel_confusion_matrix(ytrue, yhat))
 
-    print(accuracy_score(ytrue, yhat))
+    print("\naccuracy_score of the trained model is: ", accuracy_score(ytrue, yhat))
