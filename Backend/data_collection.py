@@ -7,6 +7,18 @@ from utility import *
 
 
 def start_data_collection():
+    """
+    Starts the process of collecting training data for the gesture recognition model.
+
+    This function initializes the camera video capture, sets up a directory structure for storing training data for different actions, and loops through each action and video number to record training data for the model. For each video, it captures frames from the camera feed and uses the Mediapipe library to detect and extract keypoints for face, hands, and pose. It then saves each frame as a video and saves the extracted keypoints as a numpy array.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
     cap = cv2.VideoCapture(0)
 
     # store the camera video while recording the gestures
