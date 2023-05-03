@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>ISL Hand Action Recognition Website</title>
+        <style>
+            /* Reset default margin and padding */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: linear-gradient(to bottom, #402e43, #0c0c0c);
+                font-family: Arial, sans-serif;
+            }
+
+            header {
+                background-color: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                padding: 40px;
+                text-align: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+            }
+
+            .container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: calc(100vh); /* subtract the header and footer height */
+            }
+
+            .video-player {
+                border-radius: 10px;
+                max-width: 100%;
+                max-height: 100%;
+                width: auto;
+                height: 650px;
+                margin: 0 auto;
+            }
+
+            footer {
+                background-color: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                padding: 30px;
+                text-align: center;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            /* Chat button and window */
+            .chat-button {
+                font-size: 20px;
+                position: fixed;
+                right: 20px;
+                bottom: 20px;
+                z-index: 999;
+                background-color: #fff;
+                color: #333;
+                font-weight: bold;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            .chat-window {
+                position: fixed;
+                top: 0;
+                right: -400px;
+                width: 400px;
+                height: 100%;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                transition: right 0.5s;
+            }
+
+            .chat-window.open {
+                right: 0;
+            }
+
+            .chat-header {
+                background-color: #0c0c0c;
+                color: #fff;
+                padding: 20px;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .chat-messages {
+                padding: 10px;
+                height: calc(100% - 60px);
+                overflow-y: scroll;
+            }
+
+            .chat-form {
+                padding: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .chat-form input[type="text"] {
+                flex: 1;
+                padding: 5px;
+                margin-right: 10px;
+            }
+
+            .chat-form input[type="submit"] {
+                background-color: #333;
+                color: #fff;
+                font-weight: bold;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>ISL Hand Action Recognition</h1>
+        </header>
+        <div class="container">
+            <img class="video-player" src="{{ url_for('video_feed') }}" />
+        </div>
+        <footer>
+            <p>&copy; 2023 ISL Hand Action Recognition Website</p>
+            <button class="chat-button">See Chats</button>
+        </footer>
+        <div class="chat-window">
+            <div class="chat-header">
+                <h2>Chat</h2>
+            </div>
+            <div id="chat-messages">
+                <!-- Chat messages will be dynamically added here -->
+            </div>
+            <!-- <form class="chat-form" onsubmit="return sendMessage()">
+                <input
+                    type="text"
+                    id="message-input"
+                    placeholder="Type your message"
+                    required
+                />
+                <input type="submit" value="Send" />
+            </form> -->
+        </div>
+
+        <script>
+            const chatButton = document.querySelector(".chat-button");
+            const chatWindow = document.querySelector(".chat-window");
+            // const messageInput = document.getElementById("message-input");
+            const chatMessages = document.querySelector(".chat-messages");
+            // let ws = new WebSocket("ws://" + window.location.host + "/chat");
+
+            // function sendMessage() {
+            //     if (messageInput.value) {
+            //         const message = messageInput.value;
+            //         ws.send(message);
+            //         messageInput.value = "";
+            //     }
+            //     return false;
+            // }
+
+            // function addMessageToChat(message) {
+            //     const sentences = JSON.parse(message);
+            //     sentences.forEach((sentence) => {
+            //         const chatMessageElement = document.createElement("div");
+            //         chatMessageElement.classList.add("chat-message");
+            //         chatMessageElement.textContent = sentence;
+            //         chatMessages.appendChild(chatMessageElement);
+            //     });
+            //     chatMessages.scrollTop = chatMessages.scrollHeight;
+            // }
+
+            // Define a function to update the chat section with the current state of the sentence array
+            function updateChatSection() {
+                // Send an AJAX request to the Flask endpoint that returns the current state of the sentence array
+                fetch("/sentence")
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Update the chat section with the new data
+                        const chatMessages =
+                            document.getElementById("chat-messages");
+                        chatMessages.innerHTML = "";
+                        for (const sentence of data.sentence) {
+                            const sentenceElement =
+                                document.createElement("div");
+                            sentenceElement.textContent = sentence;
+                            sentenceElement.style.paddingTop = "10px"; // Add font size here
+                            sentenceElement.style.paddingLeft = "10px"; // Add font size here
+                            sentenceElement.style.paddingRight = "10px"; // Add font size here
+                            chatMessages.appendChild(sentenceElement);
+                        }
+                    })
+                    .catch((error) => console.error(error));
+            }
+
+            // Call the updateChatSection function every 5 seconds
+            setInterval(updateChatSection, 2000);
+
+            // ws.onmessage = (event) => {
+            //     const message = event.data;
+            //     addMessageToChat(message);
+            // };
+
+            chatButton.addEventListener("click", () => {
+                chatWindow.classList.toggle("open");
+            });
+
+            // Close the chat window when clicked outside
+            document.addEventListener("click", (event) => {
+                if (
+                    event.target !== chatButton &&
+                    !chatWindow.contains(event.target)
+                ) {
+                    chatWindow.classList.remove("open");
+                }
+            });
+        </script>
+    </body>
+</html>
